@@ -1,0 +1,227 @@
+Gestion de la capacité des salles : Vous devez intégrer la vérification de la capacité des salles pour s'assurer qu'elles peuvent accueillir tous les étudiants inscrits à un cours.
+
+def verifier_capacite_salle(id_salle, id_promo, donnees_salles, donnees_promo):
+    salle = trouver_salle_par_id(id_salle, donnees_salles)
+    promo = trouver_promo_par_id(id_promo, donnees_promo)
+    
+    if salle is None or promo is None:
+        return False  # Salle ou promo non valide
+    
+    capacite_salle = salle[2]
+    nombre_etudiants = promo[2]
+    
+    if nombre_etudiants > capacite_salle:
+        return False  # La capacité de la salle est dépassée
+    
+    return True  # La salle peut accueillir tous les étudiants inscrits au cours
+
+
+
+Limites d'enseignement par semaine : Assurez-vous que les enseignants n'enseignent pas plus de 20 heures par semaine.
+
+def verifier_limite_enseignement(id_enseignant, emploi_du_temps):
+    heures_enseignement = 0
+    
+    # Parcourez l'emploi du temps pour compter les heures d'enseignement de l'enseignant
+    for cours in emploi_du_temps:
+        if cours[0] == id_enseignant:
+            heure_debut = convert_to_float(cours[5])
+            heure_fin = convert_to_float(cours[6])
+            heures_enseignement += heure_fin - heure_debut
+    
+    # Vérifiez si le nombre total d'heures d'enseignement dépasse la limite
+    if heures_enseignement > 20:
+        return False  # La limite d'enseignement est dépassée
+    else:
+        return True  # L'enseignant respecte la limite d'enseignement
+
+
+
+
+Limites de cours par semaine pour les étudiants : Veillez à ce que les étudiants n'aient pas plus de 30 heures de cours par semaine.
+
+def verifier_limite_cours_etudiant(id_promo, emploi_du_temps):
+    heures_cours = 0
+    
+    # Parcourez l'emploi du temps pour compter les heures de cours de l'étudiant
+    for cours in emploi_du_temps:
+        if cours[2] == id_promo:
+            heure_debut = convert_to_float(cours[5])
+            heure_fin = convert_to_float(cours[6])
+            heures_cours += heure_fin - heure_debut
+    
+    # Vérifiez si le nombre total d'heures de cours dépasse la limite
+    if heures_cours > 30:
+        return False  # La limite de cours est dépassée
+    else:
+        return True  # L'étudiant respecte la limite de cours
+
+
+
+
+Plage horaire des cours : Les cours doivent être programmés entre 8h30 et 20h00 du lundi au vendredi.
+
+def verifier_plage_horaire_cours(jour_semaine, heure_debut):
+    # Convertir l'heure de début en format float
+    heure_debut_float = convert_to_float(heure_debut)
+    
+    # Vérifier si le jour de la semaine est du lundi au vendredi et si l'heure de début est dans la plage horaire spécifiée
+    if jour_semaine in ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi'] and 8.5 <= heure_debut_float <= 20.0:
+        return True  # Le cours est dans la plage horaire spécifiée
+    else:
+        return False  # Le cours est en dehors de la plage horaire spécifiée
+
+
+Pause déjeuner : Les enseignants et les étudiants doivent avoir au moins une heure de pause pour déjeuner.
+
+def verifier_pause_dejeuner(jour_semaine, heure_debut, heure_fin):
+    # Convertir les heures de début et de fin en format float
+    heure_debut_float = convert_to_float(heure_debut)
+    heure_fin_float = convert_to_float(heure_fin)
+    
+    # Définir les plages horaires du déjeuner
+    plage_dejeuner = [(12.0, 13.0), (13.0, 14.0)]  # Par exemple, de 12h00 à 14h00
+    
+    # Vérifier si le cours chevauche l'une des plages horaires du déjeuner
+    for plage in plage_dejeuner:
+        if heure_debut_float <= plage[0] <= heure_fin_float or heure_debut_float <= plage[1] <= heure_fin_float:
+            return True  # Le cours chevauche une plage horaire de déjeuner
+    
+    return False  # Le cours ne chevauche pas une plage horaire de déjeuner
+
+
+
+Cours consécutifs dans des salles différentes : Les étudiants ne peuvent pas avoir deux cours consécutifs dans des salles de classe différentes.
+
+def verifier_salles_consecutives(cours_precedent, id_salle_actuelle, jour_actuel, heure_debut_actuel):
+    if cours_precedent is None:
+        return True  # Pas de cours précédent, donc pas de violation
+
+    id_salle_precedente, jour_precedent, heure_fin_precedente = cours_precedent
+
+    # Vérifier si les cours sont consécutifs et dans des salles différentes
+    if id_salle_actuelle != id_salle_precedente and jour_actuel == jour_precedent:
+        # Convertir les heures de fin précédente en format float
+        heure_fin_precedente_float = convert_to_float(heure_fin_precedente)
+        heure_debut_actuel_float = convert_to_float(heure_debut_actuel)
+
+        # Vérifier si les cours se suivent dans le temps
+        if heure_debut_actuel_float == heure_fin_precedente_float:
+            return False  # Violation de la contrainte
+
+    return True  # Pas de violation
+
+
+
+
+
+Accès aux équipements spécifiques : Les cours d'informatique doivent avoir accès à des équipements spécifiques comme les ordinateurs.
+
+def verifier_acces_equipements(cours, salle):
+    # Liste des équipements spécifiques nécessaires pour les cours d'informatique
+    equipements_informatique = ["ordinateurs", "projecteur", "tableau interactif"]  # Exemple
+
+    # Vérifier si le cours est un cours d'informatique
+    if cours[2] == "Informatique":  # Modifier selon vos données
+        # Vérifier si la salle dispose des équipements nécessaires
+        for equipement in equipements_informatique:
+            if equipement not in salle[2]:
+                return False  # La salle ne dispose pas des équipements nécessaires pour le cours d'informatique
+
+    return True  # La salle dispose des équipements nécessaires pour le cours d'informatique
+
+
+Répartition uniforme des cours : Les cours doivent être répartis uniformément tout au long de la semaine pour éviter les conflits d'horaire.
+
+def repartition_uniforme_cours(emploi_du_temps, plage_horaire_par_jour):
+    # Initialiser un dictionnaire pour compter le nombre de cours par tranche horaire et par jour
+    compteur_cours = {jour: {heure: 0 for heure in plage_horaire_par_jour} for jour in range(1, 6)}  # Supposons que 1-5 représentent du lundi au vendredi
+
+    # Compter le nombre de cours prévus pour chaque tranche horaire et chaque jour de la semaine
+    for cours in emploi_du_temps:
+        jour = cours[4]
+        heure_debut = cours[5]
+        heure_fin = cours[6]
+        heure_debut_float = convert_to_float(heure_debut)
+        heure_fin_float = convert_to_float(heure_fin)
+
+        # Trouver la plage horaire correspondante pour le cours
+        for heure in plage_horaire_par_jour:
+            if heure_debut_float <= heure < heure_fin_float:
+                compteur_cours[jour][heure] += 1
+                break
+
+    # Vérifier si le nombre de cours par tranche horaire et par jour reste uniforme
+    for jour, heures in compteur_cours.items():
+        for heure, count in heures.items():
+            # Vérifier si le nombre de cours dépasse un seuil défini
+            if count > seuil:
+                # Implémenter une logique pour ajuster l'emploi du temps et éviter les conflits d'horaire
+                # Par exemple, répartir les cours sur d'autres tranches horaires ou jours
+                ajuster_repartition_cours()
+
+    # Retourner l'emploi du temps mis à jour
+    return emploi_du_temps
+
+Gestion des demandes de changement d'emploi du temps : Le système doit être capable de gérer les demandes de changement d'emploi du temps des étudiants et des enseignants.
+()
+
+
+Disponibilité des enseignants certains jours : Certains enseignants sont disponibles que certains jours dans la semaine.
+
+def verifier_disponibilite_enseignant(id_enseignant, jour_semaine, donnees_indisponibilites):
+    for indisponibilite in donnees_indisponibilites:
+        if indisponibilite[0] == id_enseignant and indisponibilite[1] == jour_semaine:
+            return False  # L'enseignant est indisponible ce jour-là
+    return True  # L'enseignant est disponible ce jour-là
+
+
+
+Type de salle pour certains cours : Les cours de Td ne doivent pas se faire dans des amphis, les Cm doivent se faire dans des amphis, et les Td doivent se faire dans des salles qui conviennent.
+
+def verifier_type_salle(id_cours, donnees_horaire, donnees_salles):
+    for cours in donnees_horaire:
+        if cours[0] == id_cours:
+            type_cours = cours[8]  # Récupérer le type de cours (TD ou CM)
+            id_salle = cours[4]  # Récupérer l'identifiant de la salle requise pour le cours
+            for salle in donnees_salles:
+                if salle[0] == id_salle:
+                    if type_cours == "TD":
+                        if salle[2] == "Amphi":
+                            return False  # Les TD ne doivent pas se faire dans des amphis
+                        else:
+                            return True
+                    elif type_cours == "CM":
+                        if salle[2] == "Amphi":
+                            return True
+                        else:
+                            return False  # Les CM doivent se faire dans des amphis
+    return True  # Si le cours n'est pas trouvé, on suppose qu'il peut être programmé dans n'importe quelle salle
+
+
+
+Composition des cours : Chaque cours doit avoir au moins 1 CM (Cours Magistral) et 1 TD (Travaux Dirigés) dans la semaine.
+
+def verifier_composition_cours(id_cours, donnees_horaire):
+    cm_present = False
+    td_present = False
+    for cours in donnees_horaire:
+        if cours[0] == id_cours:
+            type_cours = cours[8]  # Récupérer le type de cours (TD ou CM)
+            if type_cours == "CM":
+                cm_present = True
+            elif type_cours == "TD":
+                td_present = True
+    return cm_present and td_present
+
+
+Niveaux différents : Les cours des différents niveaux doivent être programmés pour éviter les conflits d'horaire pour les étudiants suivant plusieurs cours à différents niveaux.
+
+def verifier_conflit_niveaux(id_cours, niveau_cours, donnees_horaire):
+    for cours in donnees_horaire:
+        if cours[0] != id_cours and cours[9] != niveau_cours:  # Vérifier si le cours n'est pas le même et s'il est d'un niveau différent
+            # Vérifier si les cours ont le même jour et se chevauchent dans le temps
+            if cours[5] == donnees_horaire[id_cours][5] and \
+               (cours[7] >= donnees_horaire[id_cours][6] and cours[6] <= donnees_horaire[id_cours][7]):
+                return True  # Il y a un conflit d'horaire avec un autre cours de niveau différent
+    return False  # Aucun conflit d'horaire trouvé
