@@ -1,1 +1,2 @@
-# Emploi-du-temps
+L'objectif de ce projet est de concevoir un emploi du temps optimisé pour les enseignants en tenant compte de toutes les contraintes définies par eux-mêmes. Cela comprend plusieurs préférences personnelles en matière d'horaires, de disponibilités, de salles etc. L'enjeu est de proposer un emploi du temps qui maximise la satisfaction des enseignants tout en respectant les contraintes établies. 
+Nous avons établi des tables qui sont: 1.Table Enseignant, 2.Table contraintes enseignants, 3.Table Promo, 4. Table matière, 5.Table salle de classe, 6. Table Horaires mettant en évidence les besoins et les défis clés avec SQLite.
